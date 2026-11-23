@@ -1,0 +1,13 @@
+{
+  "name": "family-order-app",
+  "version": "1.0.0",
+  "description": "家庭点菜小程序：微信浏览器打开，家人点菜提交，主人查看订单，无需付款",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=16"
+  },
+  "license": "MIT"
+}

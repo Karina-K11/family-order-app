@@ -1,0 +1,5 @@
+node_modules/
+npm-debug.log
+# 本地数据（菜单/订单），按需备份后可忽略
+data/menu.json
+data/orders.json
