@@ -26,14 +26,24 @@ function ensureData() {
 }
 
 function defaultMenu() {
+  const img = (slug) => '/images/' + slug + '.jpg';
   return [
-    { id: uid(), name: '番茄炒蛋', price: 18, category: '家常菜', desc: '酸甜适口', available: true },
-    { id: uid(), name: '红烧肉', price: 38, category: '家常菜', desc: '肥而不腻', available: true },
-    { id: uid(), name: '清炒时蔬', price: 16, category: '素菜', desc: '当日新鲜蔬菜', available: true },
-    { id: uid(), name: '可乐鸡翅', price: 32, category: '家常菜', desc: '微甜', available: true },
-    { id: uid(), name: '西红柿蛋汤', price: 12, category: '汤品', desc: '清淡暖胃', available: true },
-    { id: uid(), name: '米饭', price: 3, category: '主食', desc: '一碗', available: true },
-    { id: uid(), name: '紫菜虾皮汤', price: 14, category: '汤品', desc: '', available: true }
+    { id: uid(), name: '番茄炒蛋', category: '家常菜', desc: '酸甜适口', image: img('tomato-egg'), available: true },
+    { id: uid(), name: '红烧肉', category: '家常菜', desc: '肥而不腻', image: img('braised-pork'), available: true },
+    { id: uid(), name: '可乐鸡翅', category: '家常菜', desc: '微甜', image: img('cola-chicken-wings'), available: true },
+    { id: uid(), name: '宫保鸡丁', category: '家常菜', desc: '香辣花生', image: img('kung-pao-chicken'), available: true },
+    { id: uid(), name: '青椒肉丝', category: '家常菜', desc: '咸鲜爽口', image: img('shredded-pork-pepper'), available: true },
+    { id: uid(), name: '鱼香肉丝', category: '家常菜', desc: '酸甜微辣', image: img('fish-flavored-pork'), available: true },
+    { id: uid(), name: '麻婆豆腐', category: '家常菜', desc: '麻辣嫩滑', image: img('mapo-tofu'), available: true },
+    { id: uid(), name: '酸辣土豆丝', category: '家常菜', desc: '脆爽开胃', image: img('spicy-potato-shreds'), available: true },
+    { id: uid(), name: '清蒸鲈鱼', category: '家常菜', desc: '鲜嫩清淡', image: img('steamed-bass'), available: true },
+    { id: uid(), name: '蒜蓉西兰花', category: '家常菜', desc: '清爽素菜', image: img('broccoli-garlic'), available: true },
+    { id: uid(), name: '红烧排骨', category: '家常菜', desc: '酱香入味', image: img('braised-ribs'), available: true },
+    { id: uid(), name: '水蒸蛋', category: '家常菜', desc: '滑嫩入口', image: img('steamed-egg'), available: true },
+    { id: uid(), name: '清炒时蔬', category: '素菜', desc: '当日新鲜蔬菜', image: img('stir-fried-greens'), available: true },
+    { id: uid(), name: '西红柿蛋汤', category: '汤品', desc: '清淡暖胃', image: img('tomato-egg-soup'), available: true },
+    { id: uid(), name: '紫菜虾皮汤', category: '汤品', desc: '鲜美爽口', image: img('seaweed-shrimp-soup'), available: true },
+    { id: uid(), name: '米饭', category: '主食', desc: '一碗', image: img('steamed-rice'), available: true }
   ];
 }
 
@@ -215,9 +225,9 @@ async function handleApi(req, res, url) {
 function normalizeMenuItem(body) {
   return {
     name: String(body.name || '').trim(),
-    price: Math.max(0, Number(body.price) || 0),
     category: String(body.category || '其他').trim() || '其他',
     desc: String(body.desc || '').trim(),
+    image: String(body.image || '').trim(),
     available: body.available === undefined ? true : !!body.available
   };
 }

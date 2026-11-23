@@ -55,11 +55,10 @@
     background: var(--card); border-radius: var(--radius); padding: 14px;
     display: flex; gap: 12px; box-shadow: 0 1px 3px rgba(0,0,0,.05);
   }
+  .dish .thumb { width: 66px; height: 66px; border-radius: 10px; object-fit: cover; flex: 0 0 auto; background: var(--bg); }
   .dish .info { flex: 1; min-width: 0; }
   .dish .name { font-size: 16px; font-weight: 600; }
   .dish .desc { font-size: 13px; color: var(--muted); margin-top: 3px; }
-  .dish .price { margin-top: 8px; color: var(--primary); font-weight: 600; }
-  .dish .price::before { content: "¥"; font-size: 12px; margin-right: 1px; }
   .dish.unavailable { opacity: .5; }
   .dish .ops { display: flex; flex-direction: column; align-items: flex-end; justify-content: space-between; }
   .note-btn { background: none; border: none; color: var(--muted); font-size: 12px; text-decoration: underline; }
@@ -84,9 +83,7 @@
     display: flex; align-items: center; justify-content: space-between;
     box-shadow: 0 6px 20px rgba(0,0,0,.25);
   }
-  .cart-bar .total .num { color: #ffd8a8; font-weight: 700; }
-  .cart-bar .total .num::before { content: "¥"; font-size: 12px; }
-  .cart-bar .count { font-size: 12px; opacity: .8; margin-left: 6px; }
+  .cart-bar .count { font-size: 13px; opacity: .9; }
   .cart-bar .go {
     background: var(--primary); color: #fff; border: none; border-radius: 999px;
     padding: 10px 22px; font-size: 15px; font-weight: 600;
@@ -127,7 +124,6 @@
   .cart-item .ci-info { flex: 1; }
   .cart-item .ci-name { font-weight: 600; }
   .cart-item .ci-note { font-size: 12px; color: var(--muted); margin-top: 2px; }
-  .cart-item .ci-price { color: var(--primary); font-weight: 600; }
   .cart-item .ci-note-input { margin-top: 6px; width: 100%; padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px; }
 
   .btn-primary {
@@ -154,10 +150,7 @@
   .order .o-item { padding: 6px 0; display: flex; justify-content: space-between; gap: 10px; }
   .order .o-item .oi-name { flex: 1; }
   .order .o-item .oi-note { font-size: 12px; color: var(--muted); }
-  .order .o-item .oi-price { color: var(--text); }
-  .order .o-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--line); }
-  .order .o-total { font-weight: 700; color: var(--primary); }
-  .order .o-total::before { content: "¥"; font-size: 12px; }
+  .order .o-foot { display: flex; justify-content: flex-end; align-items: center; margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--line); }
   .order .o-actions { display: flex; gap: 8px; }
 
   .empty { text-align: center; color: var(--muted); padding: 60px 20px; }
@@ -168,6 +161,7 @@
   .admin-wrap .section-title { font-weight: 600; margin: 6px 0 12px; }
   .admin-form { background: var(--card); border-radius: var(--radius); padding: 14px; margin-bottom: 16px; }
   .admin-dish { background: var(--card); border-radius: var(--radius); padding: 12px 14px; margin-bottom: 10px; display: flex; gap: 10px; align-items: center; }
+  .admin-dish .ad-thumb { width: 48px; height: 48px; border-radius: 8px; object-fit: cover; flex: 0 0 auto; background: var(--bg); }
   .admin-dish .ad-info { flex: 1; min-width: 0; }
   .admin-dish .ad-name { font-weight: 600; }
   .admin-dish .ad-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
@@ -191,7 +185,7 @@
   <div class="cats" id="catBar"></div>
   <div class="menu-list" id="menuList"></div>
   <div class="cart-bar" id="cartBar" style="display:none">
-    <div class="total"><span class="num" id="cartTotal">0</span><span class="count" id="cartCount"></span></div>
+    <div class="total"><span class="count" id="cartCount"></span></div>
     <button class="go" id="cartGo">去提交</button>
   </div>
 </main>
@@ -208,7 +202,6 @@
     <div class="admin-form">
       <div class="field"><label>菜名</label><input id="mName" placeholder="如：清蒸鲈鱼"></div>
       <div class="field"><label>分类</label><input id="mCategory" placeholder="如：家常菜 / 汤品 / 主食"></div>
-      <div class="field"><label>价格（元）</label><input id="mPrice" type="number" min="0" step="0.5" placeholder="0"></div>
       <div class="field"><label>描述（可选）</label><input id="mDesc" placeholder="口味、食材等"></div>
       <button class="btn-primary" id="btnAddMenu">添加菜品</button>
     </div>
@@ -233,9 +226,7 @@
       <div id="submitItems"></div>
     </div>
     <div class="sheet-foot">
-      <div style="display:flex;justify-content:space-between;margin-bottom:12px">
-        <span>合计</span><strong style="color:var(--primary)" id="submitTotal">¥0</strong>
-      </div>
+      <div style="margin-bottom:12px;color:var(--muted);font-size:13px" id="submitCount"></div>
       <button class="btn-primary" id="btnSubmitOrder">提交订单</button>
     </div>
   </div>
@@ -261,7 +252,6 @@
     <div class="sheet-body">
       <div class="field"><label>菜名</label><input id="eName"></div>
       <div class="field"><label>分类</label><input id="eCategory"></div>
-      <div class="field"><label>价格（元）</label><input id="ePrice" type="number" min="0" step="0.5"></div>
       <div class="field"><label>描述</label><input id="eDesc"></div>
     </div>
     <div class="sheet-foot">
@@ -349,11 +339,14 @@ function renderMenu() {
     var qty = cartItem ? cartItem.qty : 0;
     var note = cartItem ? cartItem.note : '';
     var disabled = !m.available ? ' unavailable' : '';
+    var thumb = m.image
+      ? '<img class="thumb" src="' + esc(m.image) + '" alt="' + esc(m.name) + '" onerror="this.style.visibility=\'hidden\'">'
+      : '<div class="thumb"></div>';
     return '<div class="dish' + disabled + '">' +
+      thumb +
       '<div class="info">' +
         '<div class="name">' + esc(m.name) + '</div>' +
         (m.desc ? '<div class="desc">' + esc(m.desc) + '</div>' : '') +
-        '<div class="price">' + m.price.toFixed(2) + '</div>' +
         '<button class="note-btn' + (note ? ' has' : '') + '" data-note="' + m.id + '">备注</button>' +
         (note ? '<div class="note-row"><input data-notetext="' + m.id + '" value="' + esc(note) + '" placeholder="如：少辣、不要香菜"></div>' : '') +
       '</div>' +
@@ -406,20 +399,18 @@ function cartEntries() {
   return Object.keys(state.cart).map(function (id) {
     var m = state.menu.find(function (x) { return x.id === id; });
     if (!m) return null;
-    return { menuId: id, name: m.name, price: m.price, qty: state.cart[id].qty, note: state.cart[id].note || '' };
+    return { menuId: id, name: m.name, qty: state.cart[id].qty, note: state.cart[id].note || '' };
   }).filter(Boolean);
 }
-function cartTotal() {
-  return cartEntries().reduce(function (s, it) { return s + it.price * it.qty; }, 0);
+function cartCount() {
+  return cartEntries().reduce(function (s, it) { return s + it.qty; }, 0);
 }
 function renderCartBar() {
   var entries = cartEntries();
   var bar = $('cartBar');
   if (entries.length === 0) { bar.style.display = 'none'; return; }
   bar.style.display = 'flex';
-  $('cartTotal').textContent = cartTotal().toFixed(2);
-  var count = entries.reduce(function (s, it) { return s + it.qty; }, 0);
-  $('cartCount').textContent = count + ' 份';
+  $('cartCount').textContent = cartCount() + ' 份';
 }
 
 /* ================= 提交订单 ================= */
@@ -432,13 +423,12 @@ $('cartGo').onclick = function () {
         '<div class="ci-name">' + esc(it.name) + ' × ' + it.qty + '</div>' +
         '<input class="ci-note-input" data-cinote="' + i + '" value="' + esc(it.note) + '" placeholder="备注（可选）：如少辣">' +
       '</div>' +
-      '<div class="ci-price">¥' + (it.price * it.qty).toFixed(2) + '</div>' +
     '</div>';
   }).join('');
   Array.prototype.forEach.call(document.querySelectorAll('[data-cinote]'), function (i) {
     i.oninput = function () { entries[Number(i.dataset.cinote)].note = i.value; };
   });
-  $('submitTotal').textContent = '¥' + cartTotal().toFixed(2);
+  $('submitCount').textContent = '共 ' + cartCount() + ' 份';
   $('submitMask').style.display = 'flex';
 };
 
@@ -475,10 +465,8 @@ function renderOrders() {
         '<div class="oi-name">' + esc(it.name) + ' × ' + it.qty +
           (it.note ? '<div class="oi-note">备注：' + esc(it.note) + '</div>' : '') +
         '</div>' +
-        '<div class="oi-price">¥' + (it.price * it.qty).toFixed(2) + '</div>' +
       '</div>';
     }).join('');
-    var total = o.items.reduce(function (s, it) { return s + it.price * it.qty; }, 0);
     var actions = '';
     if (o.status === 'pending') {
       actions = '<button class="btn-mini" data-done="' + o.id + '">完成</button>' +
@@ -492,7 +480,6 @@ function renderOrders() {
       '</div>' +
       items +
       '<div class="o-foot">' +
-        '<div class="o-total">' + total.toFixed(2) + '</div>' +
         '<div class="o-actions">' + actions + '</div>' +
       '</div>' +
     '</div>';
@@ -529,10 +516,14 @@ function renderAdminMenu() {
     return;
   }
   $('adminMenuList').innerHTML = state.menu.map(function (m) {
+    var thumb = m.image
+      ? '<img class="ad-thumb" src="' + esc(m.image) + '" alt="' + esc(m.name) + '" onerror="this.style.visibility=\'hidden\'">'
+      : '<div class="ad-thumb"></div>';
     return '<div class="admin-dish">' +
+      thumb +
       '<div class="ad-info">' +
         '<div class="ad-name">' + esc(m.name) + '</div>' +
-        '<div class="ad-meta">' + esc(m.category) + ' · ¥' + m.price.toFixed(2) + (m.desc ? ' · ' + esc(m.desc) : '') + '</div>' +
+        '<div class="ad-meta">' + esc(m.category) + (m.desc ? ' · ' + esc(m.desc) : '') + '</div>' +
       '</div>' +
       '<label class="switch"><input type="checkbox" data-avail="' + m.id + '"' + (m.available ? ' checked' : '') + '>上架</label>' +
       '<button class="btn-ghost" data-edit="' + m.id + '">编辑</button>' +
@@ -557,14 +548,13 @@ $('btnAddMenu').onclick = function () {
   var body = {
     name: $('mName').value.trim(),
     category: $('mCategory').value.trim(),
-    price: Number($('mPrice').value),
     desc: $('mDesc').value.trim()
   };
   if (!body.name) { toast('请填写菜名'); return; }
   api('POST', '/api/menu', body).then(function (res) {
     if (res.ok) {
       toast('已添加');
-      $('mName').value = ''; $('mCategory').value = ''; $('mPrice').value = ''; $('mDesc').value = '';
+      $('mName').value = ''; $('mCategory').value = ''; $('mDesc').value = '';
       loadMenu();
     } else { toast(res.error || '添加失败'); }
   });
@@ -576,7 +566,6 @@ function openEdit(id) {
   state.editingId = id;
   $('eName').value = m.name;
   $('eCategory').value = m.category;
-  $('ePrice').value = m.price;
   $('eDesc').value = m.desc || '';
   $('editMask').style.display = 'flex';
 }
@@ -584,7 +573,6 @@ $('btnEditSave').onclick = function () {
   var body = {
     name: $('eName').value.trim(),
     category: $('eCategory').value.trim(),
-    price: Number($('ePrice').value),
     desc: $('eDesc').value.trim()
   };
   api('PUT', '/api/menu/' + state.editingId, body).then(function (res) {
