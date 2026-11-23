@@ -1,8 +1,7 @@
 /**
  * 家庭点菜小程序 · 零依赖 Node 后端
  * 运行：node server.js   （默认端口 3000，可用环境变量 PORT 覆盖）
- * 管理口令：环境变量 ADMIN_PIN，默认 8888
- * 数据保存在 ./data 目录下的 JSON 文件中。
+ * 订单保留最近 30 天，超期自动清理；数据保存在 ./data 目录下的 JSON 文件中。
  */
 const http = require('http');
 const fs = require('fs');
@@ -16,7 +15,8 @@ const MENU_FILE = path.join(DATA_DIR, 'menu.json');
 const ORDERS_FILE = path.join(DATA_DIR, 'orders.json');
 
 const PORT = Number(process.env.PORT || 3000);
-const ADMIN_PIN = process.env.ADMIN_PIN || '8888';
+// 订单保留天数：超过该天数的订单在读取/写入时自动清除
+const ORDER_RETENTION_DAYS = Number(process.env.ORDER_RETENTION_DAYS || 30);
 
 // ---------- 数据读写 ----------
 function ensureData() {
@@ -88,9 +88,13 @@ function readBody(req) {
   });
 }
 
-function checkPin(body, req) {
-  const pin = (body && body.pin) || req.headers['x-admin-pin'];
-  return pin === ADMIN_PIN;
+// 过滤出仍在保留期内的订单（超过 ORDER_RETENTION_DAYS 天的自动清除）
+function pruneExpiredOrders(orders) {
+  const cutoff = Date.now() - ORDER_RETENTION_DAYS * 24 * 60 * 60 * 1000;
+  return orders.filter((o) => {
+    const t = new Date(o.createdAt).getTime();
+    return !isNaN(t) && t >= cutoff;
+  });
 }
 
 const MIME = {
@@ -126,22 +130,6 @@ async function handleApi(req, res, url) {
   }
   const body = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method) ? await readBody(req) : {};
 
-  // 校验口令（除公开接口外）
-  const protectedRoutes = [
-    ['POST', /^\/api\/menu$/],
-    ['PUT', /^\/api\/menu\/[\w-]+$/],
-    ['DELETE', /^\/api\/menu\/[\w-]+$/],
-    ['PATCH', /^\/api\/orders\/[\w-]+$/],
-    ['DELETE', /^\/api\/orders\/[\w-]+$/]
-  ];
-  const needPin = protectedRoutes.some(([m, re]) => req.method === m && re.test(url.pathname));
-  if (needPin && !checkPin(body, req)) return sendJson(res, 401, { ok: false, error: '口令不正确' });
-
-  // 口令校验
-  if (req.method === 'POST' && url.pathname === '/api/auth/check') {
-    return sendJson(res, 200, { ok: checkPin(body, req) });
-  }
-
   // 菜单
   if (req.method === 'GET' && url.pathname === '/api/menu') {
     return sendJson(res, 200, { ok: true, menu: readJson(MENU_FILE, []) });
@@ -160,10 +148,15 @@ async function handleApi(req, res, url) {
     const menu = readJson(MENU_FILE, []);
     const idx = menu.findIndex((x) => x.id === m[1]);
     if (idx < 0) return sendJson(res, 404, { ok: false, error: '菜品不存在' });
-    const patch = normalizeMenuItem(body);
-    menu[idx] = Object.assign({}, menu[idx], patch);
+    const cur = menu[idx];
+    // 仅覆盖本次提交的字段，未提交的字段（含图片）保留原值
+    if (body.name !== undefined && String(body.name).trim()) cur.name = String(body.name).trim();
+    if (body.category !== undefined) cur.category = String(body.category).trim() || '其他';
+    if (body.desc !== undefined) cur.desc = String(body.desc).trim();
+    if (body.image !== undefined) cur.image = String(body.image).trim();
+    if (body.available !== undefined) cur.available = !!body.available;
     writeJson(MENU_FILE, menu);
-    return sendJson(res, 200, { ok: true, item: menu[idx] });
+    return sendJson(res, 200, { ok: true, item: cur });
   }
   if (m && req.method === 'DELETE') {
     let menu = readJson(MENU_FILE, []);
@@ -174,7 +167,9 @@ async function handleApi(req, res, url) {
 
   // 订单
   if (req.method === 'GET' && url.pathname === '/api/orders') {
-    const orders = readJson(ORDERS_FILE, []).slice().sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    let orders = pruneExpiredOrders(readJson(ORDERS_FILE, []));
+    writeJson(ORDERS_FILE, orders);
+    orders = orders.slice().sort((a, b) => b.createdAt.localeCompare(a.createdAt));
     return sendJson(res, 200, { ok: true, orders });
   }
   if (req.method === 'POST' && url.pathname === '/api/orders') {
@@ -191,7 +186,7 @@ async function handleApi(req, res, url) {
     })).filter((it) => it.name);
     if (cleanItems.length === 0) return sendJson(res, 400, { ok: false, error: '请先选择菜品' });
 
-    const orders = readJson(ORDERS_FILE, []);
+    let orders = pruneExpiredOrders(readJson(ORDERS_FILE, []));
     const order = {
       id: uid(),
       person,
@@ -246,5 +241,5 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(PORT, () => {
   console.log(`家庭点菜服务已启动：http://localhost:${PORT}`);
-  console.log(`管理口令：${ADMIN_PIN}（可通过环境变量 ADMIN_PIN 修改）`);
+  console.log(`订单保留最近 ${ORDER_RETENTION_DAYS} 天，超期自动清理`);
 });

@@ -232,19 +232,6 @@
   </div>
 </div>
 
-<!-- 口令弹层 -->
-<div class="mask" id="pinMask" style="display:none">
-  <div class="sheet" style="align-items:stretch">
-    <div class="sheet-head">输入管理口令</div>
-    <div class="sheet-body">
-      <div class="field"><label>口令（由主人提供）</label><input id="pinInput" type="password" inputmode="numeric"></div>
-    </div>
-    <div class="sheet-foot">
-      <button class="btn-primary" id="btnPinOk">确认</button>
-    </div>
-  </div>
-</div>
-
 <!-- 编辑菜品弹层 -->
 <div class="mask" id="editMask" style="display:none">
   <div class="sheet">
@@ -267,7 +254,6 @@ var state = {
   cart: {},            // menuId -> { qty, note }
   orders: [],
   route: 'order',
-  authed: localStorage.getItem('fam_pin') || '',
   activeCat: '全部',
   editingId: null,
   pollTimer: null
@@ -293,12 +279,10 @@ function toast(msg) {
 }
 
 function api(method, url, body) {
-  var headers = { 'Content-Type': 'application/json' };
-  if (state.authed) headers['X-Admin-Pin'] = state.authed;
   return fetch(url, {
     method: method,
-    headers: headers,
-    body: body ? JSON.stringify(Object.assign({ pin: state.authed }, body)) : undefined
+    headers: { 'Content-Type': 'application/json' },
+    body: body ? JSON.stringify(body) : undefined
   }).then(function (r) { return r.json(); });
 }
 
@@ -591,25 +575,6 @@ function toggleAvail(id, avail) {
   });
 }
 
-/* ================= 口令 ================= */
-function requireAuth(nextRoute) {
-  if (state.authed) { enterRoute(nextRoute); return; }
-  state.pendingRoute = nextRoute;
-  $('pinMask').style.display = 'flex';
-}
-$('btnPinOk').onclick = function () {
-  var pin = $('pinInput').value.trim();
-  api('POST', '/api/auth/check', { pin: pin }).then(function (res) {
-    if (res.ok) {
-      state.authed = pin;
-      localStorage.setItem('fam_pin', pin);
-      $('pinMask').style.display = 'none';
-      $('pinInput').value = '';
-      enterRoute(state.pendingRoute || 'admin');
-    } else { toast('口令不正确'); }
-  });
-};
-
 /* ================= 路由 ================= */
 function enterRoute(route) {
   state.route = route;
@@ -634,15 +599,13 @@ function stopPoll() {
 
 Array.prototype.forEach.call(document.querySelectorAll('.tab'), function (t) {
   t.onclick = function () {
-    var r = t.dataset.route;
-    if (r === 'admin' || r === 'orders') requireAuth(r); else enterRoute(r);
+    enterRoute(t.dataset.route);
   };
 });
 
 // 点击遮罩关闭弹层
 $('submitMask').onclick = function (e) { if (e.target === this) this.style.display = 'none'; };
 $('editMask').onclick = function (e) { if (e.target === this) this.style.display = 'none'; };
-$('pinMask').onclick = function (e) { if (e.target === this) this.style.display = 'none'; };
 
 /* ================= 启动 ================= */
 loadMenu();
