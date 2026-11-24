@@ -37,20 +37,25 @@
   .header h1 { font-size: 18px; font-weight: 600; }
   .header .sub { font-size: 12px; opacity: .85; margin-top: 2px; }
 
-  /* 分类条 */
-  .cats {
-    display: flex; gap: 8px; overflow-x: auto; padding: 12px 16px;
-    background: var(--bg); scrollbar-width: none;
+  /* 点餐分栏：左分类竖栏，右菜品列表 */
+  .order-body { display: flex; align-items: flex-start; }
+  .side-cats {
+    flex: 0 0 88px; width: 88px; background: var(--bg);
+    display: flex; flex-direction: column; gap: 2px; padding: 10px 0;
+    min-height: calc(100vh - 60px);
   }
-  .cats::-webkit-scrollbar { display: none; }
-  .cat {
-    flex: 0 0 auto; padding: 7px 14px; border-radius: 999px;
-    background: var(--card); color: var(--muted); border: 1px solid var(--line); font-size: 14px;
+  .side-cats .cat {
+    display: block; width: 100%; padding: 15px 6px; background: none; border: none;
+    color: var(--muted); font-size: 13px; text-align: center; position: relative;
   }
-  .cat.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+  .side-cats .cat.active { background: var(--card); color: var(--primary); font-weight: 600; }
+  .side-cats .cat.active::before {
+    content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+    width: 3px; height: 18px; background: var(--primary); border-radius: 0 2px 2px 0;
+  }
 
   /* 菜品列表 */
-  .menu-list { padding: 4px 16px 20px; display: flex; flex-direction: column; gap: 12px; }
+  .menu-list { flex: 1; min-width: 0; padding: 12px 12px 20px; display: flex; flex-direction: column; gap: 12px; }
   .dish {
     background: var(--card); border-radius: var(--radius); padding: 14px;
     display: flex; gap: 12px; box-shadow: 0 1px 3px rgba(0,0,0,.05);
@@ -182,8 +187,10 @@
 
 <!-- ===== 视图：点菜 ===== -->
 <main id="view-order">
-  <div class="cats" id="catBar"></div>
-  <div class="menu-list" id="menuList"></div>
+  <div class="order-body">
+    <aside class="side-cats" id="catBar"></aside>
+    <div class="menu-list" id="menuList"></div>
+  </div>
   <div class="cart-bar" id="cartBar" style="display:none">
     <div class="total"><span class="count" id="cartCount"></span></div>
     <button class="go" id="cartGo">去提交</button>
@@ -222,7 +229,7 @@
   <div class="sheet">
     <div class="sheet-head">确认订单</div>
     <div class="sheet-body">
-      <div class="field"><label>点菜人称呼</label><input id="personName" placeholder="如：妈妈 / 姐姐"></div>
+      <div class="field"><label>点菜人称呼</label><input id="personName" value="宝宝" placeholder="如：妈妈 / 姐姐"></div>
       <div id="submitItems"></div>
     </div>
     <div class="sheet-foot">
@@ -429,7 +436,7 @@ $('btnSubmitOrder').onclick = function () {
     if (res.ok) {
       toast('订单已提交');
       state.cart = {};
-      $('personName').value = '';
+      $('personName').value = '宝宝';
       $('submitMask').style.display = 'none';
       renderMenu();
     } else { toast(res.error || '提交失败'); }
