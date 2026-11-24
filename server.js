@@ -22,29 +22,55 @@ const ORDER_RETENTION_DAYS = Number(process.env.ORDER_RETENTION_DAYS || 30);
 function ensureData() {
   if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
   if (!fs.existsSync(MENU_FILE)) fs.writeFileSync(MENU_FILE, JSON.stringify(defaultMenu(), null, 2), 'utf8');
+  else seedMenu();
   if (!fs.existsSync(ORDERS_FILE)) fs.writeFileSync(ORDERS_FILE, '[]', 'utf8');
+}
+
+// 启动时按菜名补缺：补入新增菜品；为已有菜品补齐缺失的做法，不覆盖用户改动
+function seedMenu() {
+  const menu = readJson(MENU_FILE, []);
+  const seeds = defaultMenu();
+  let changed = false;
+  seeds.forEach((s) => {
+    const exist = menu.find((x) => x.name === s.name);
+    if (!exist) { menu.push(s); changed = true; }
+    else if (!exist.recipe && s.recipe) { exist.recipe = s.recipe; changed = true; }
+  });
+  if (changed) writeJson(MENU_FILE, menu);
 }
 
 function defaultMenu() {
   const img = (slug) => '/images/' + slug + '.jpg';
-  return [
-    { id: uid(), name: '番茄炒蛋', category: '家常菜', desc: '酸甜适口', image: img('tomato-egg'), available: true },
-    { id: uid(), name: '红烧肉', category: '家常菜', desc: '肥而不腻', image: img('braised-pork'), available: true },
-    { id: uid(), name: '可乐鸡翅', category: '家常菜', desc: '微甜', image: img('cola-chicken-wings'), available: true },
-    { id: uid(), name: '宫保鸡丁', category: '家常菜', desc: '香辣花生', image: img('kung-pao-chicken'), available: true },
-    { id: uid(), name: '青椒肉丝', category: '家常菜', desc: '咸鲜爽口', image: img('shredded-pork-pepper'), available: true },
-    { id: uid(), name: '鱼香肉丝', category: '家常菜', desc: '酸甜微辣', image: img('fish-flavored-pork'), available: true },
-    { id: uid(), name: '麻婆豆腐', category: '家常菜', desc: '麻辣嫩滑', image: img('mapo-tofu'), available: true },
-    { id: uid(), name: '酸辣土豆丝', category: '家常菜', desc: '脆爽开胃', image: img('spicy-potato-shreds'), available: true },
-    { id: uid(), name: '清蒸鲈鱼', category: '家常菜', desc: '鲜嫩清淡', image: img('steamed-bass'), available: true },
-    { id: uid(), name: '蒜蓉西兰花', category: '家常菜', desc: '清爽素菜', image: img('broccoli-garlic'), available: true },
-    { id: uid(), name: '红烧排骨', category: '家常菜', desc: '酱香入味', image: img('braised-ribs'), available: true },
-    { id: uid(), name: '水蒸蛋', category: '家常菜', desc: '滑嫩入口', image: img('steamed-egg'), available: true },
-    { id: uid(), name: '清炒时蔬', category: '素菜', desc: '当日新鲜蔬菜', image: img('stir-fried-greens'), available: true },
-    { id: uid(), name: '西红柿蛋汤', category: '汤品', desc: '清淡暖胃', image: img('tomato-egg-soup'), available: true },
-    { id: uid(), name: '紫菜虾皮汤', category: '汤品', desc: '鲜美爽口', image: img('seaweed-shrimp-soup'), available: true },
-    { id: uid(), name: '米饭', category: '主食', desc: '一碗', image: img('steamed-rice'), available: true }
+  const defs = [
+    { name: '番茄炒蛋', category: '家常菜', desc: '酸甜适口', slug: 'tomato-egg', recipe: '番茄切块，鸡蛋加少许盐打散；\n热锅倒油，蛋液下锅炒至凝固盛出；\n底油下番茄翻炒出汁，加少许糖和盐调味；\n倒回鸡蛋翻匀，撒葱花出锅。' },
+    { name: '红烧肉', category: '家常菜', desc: '肥而不腻', slug: 'braised-pork', recipe: '五花肉切块，冷水下锅加料酒焯水去腥，捞出洗净；\n热锅炒糖色，下肉块翻炒上色；\n加姜片、八角、生抽、老抽和热水没过肉；\n小火炖 40 分钟至软烂，大火收汁即可。' },
+    { name: '可乐鸡翅', category: '家常菜', desc: '微甜', slug: 'cola-chicken-wings', recipe: '鸡翅两面划刀，冷水焯水捞出；\n热油煎鸡翅至两面金黄；\n倒入可乐没过鸡翅，加生抽、姜片；\n中火焖 15 分钟，大火收浓汤汁。' },
+    { name: '宫保鸡丁', category: '家常菜', desc: '香辣花生', slug: 'kung-pao-chicken', recipe: '鸡胸肉切丁，用料酒、生抽、淀粉抓匀腌制；\n调碗汁：生抽、醋、糖、淀粉和少许水；\n热油炒香干辣椒、花椒，下鸡丁滑散；\n加花生米、葱段，淋碗汁翻匀出锅。' },
+    { name: '青椒肉丝', category: '家常菜', desc: '咸鲜爽口', slug: 'shredded-pork-pepper', recipe: '猪里脊切丝，加生抽、淀粉、油抓匀；\n青椒切丝，葱姜切末；\n热油滑炒肉丝至变色盛出；\n底油炒青椒，倒回肉丝，加盐、生抽翻炒入味。' },
+    { name: '鱼香肉丝', category: '家常菜', desc: '酸甜微辣', slug: 'fish-flavored-pork', recipe: '肉丝腌制滑散盛出；木耳、笋丝、青椒切丝；\n调鱼香汁：生抽、醋、糖、豆瓣酱、淀粉水；\n炒香豆瓣酱和葱姜蒜，下配菜丝翻炒；\n倒回肉丝，淋鱼香汁炒匀。' },
+    { name: '麻婆豆腐', category: '家常菜', desc: '麻辣嫩滑', slug: 'mapo-tofu', recipe: '嫩豆腐切块，盐水浸泡备用；\n热油炒香肉末、豆瓣酱、辣椒面；\n加汤水，下豆腐小火煮几分钟；\n分两次淋水淀粉勾芡，撒花椒面、葱花。' },
+    { name: '酸辣土豆丝', category: '家常菜', desc: '脆爽开胃', slug: 'spicy-potato-shreds', recipe: '土豆切丝，泡水洗去淀粉，沥干；\n热油爆香干辣椒、花椒、蒜末；\n下土豆丝大火快炒；\n烹醋，加盐、鸡精，翻匀出锅。' },
+    { name: '清蒸鲈鱼', category: '家常菜', desc: '鲜嫩清淡', slug: 'steamed-bass', recipe: '鲈鱼处理干净，两面划刀，抹盐和料酒，铺葱姜；\n水开后上锅大火蒸 8 分钟；\n倒掉蒸鱼汁水，拣去旧葱姜；\n铺新葱丝姜丝，淋热油，浇生抽。' },
+    { name: '蒜蓉西兰花', category: '家常菜', desc: '清爽素菜', slug: 'broccoli-garlic', recipe: '西兰花切小朵，盐水浸泡后焯水；\n热油爆香蒜蓉；\n下西兰花翻炒，加盐、少许鸡精；\n翻匀即可出锅。' },
+    { name: '红烧排骨', category: '家常菜', desc: '酱香入味', slug: 'braised-ribs', recipe: '排骨冷水下锅焯水，捞出洗净；\n炒糖色下排骨翻炒上色；\n加姜片、八角、生抽、老抽和热水；\n小火炖 40 分钟，大火收汁。' },
+    { name: '水蒸蛋', category: '家常菜', desc: '滑嫩入口', slug: 'steamed-egg', recipe: '鸡蛋打散，加 1.5 倍温水和少许盐搅匀；\n过筛去浮沫，盖保鲜膜扎孔；\n水开后中火蒸 10 分钟；\n淋生抽、香油，撒葱花。' },
+    { name: '清炒时蔬', category: '素菜', desc: '当日新鲜蔬菜', slug: 'stir-fried-greens', recipe: '时蔬洗净切段，蒜切片；\n热油爆香蒜片；\n下蔬菜大火快炒；\n加盐调味，翻匀出锅。' },
+    { name: '西红柿蛋汤', category: '汤品', desc: '清淡暖胃', slug: 'tomato-egg-soup', recipe: '西红柿切块，鸡蛋打散；\n底油炒番茄出汁，加水烧开；\n淋入蛋液形成蛋花；\n加盐、香油，撒葱花。' },
+    { name: '紫菜虾皮汤', category: '汤品', desc: '鲜美爽口', slug: 'seaweed-shrimp-soup', recipe: '碗中放紫菜、虾皮、葱花、生抽、香油；\n锅中水烧开；\n冲入碗中，搅匀即可。' },
+    { name: '米饭', category: '主食', desc: '一碗', slug: 'steamed-rice', recipe: '大米淘洗两遍；\n加水，水面约高出一指节；\n电饭锅煮饭档，跳档后焖 10 分钟再开盖。' },
+    { name: '蒜苗炒腊肉', category: '家常菜', desc: '咸香下饭', slug: 'garlic-sprout-bacon', recipe: '腊肉蒸熟切薄片，蒜苗切段；\n热油下腊肉煸炒出油、炒香；\n下蒜苗白段翻炒，再放叶段；\n加少许生抽、糖调味，翻匀出锅。' },
+    { name: '香菇滑鸡', category: '家常菜', desc: '嫩滑鲜香', slug: 'mushroom-chicken', recipe: '鸡腿肉切块，用生抽、料酒、淀粉、油腌制；\n香菇泡发切块，姜蒜切末；\n热油炒香姜蒜，下鸡块滑炒至变色；\n加香菇和少许水焖几分钟，加盐收汁。' },
+    { name: '干煸豆角', category: '家常菜', desc: '焦香微辣', slug: 'dry-fried-beans', recipe: '豆角洗净掰段，沥干；\n多油煸至豆角起皱、表皮焦斑，盛出；\n底油炒香肉末、干辣椒、蒜；\n倒回豆角，加盐、生抽、花椒面翻匀。' },
+    { name: '剁椒鱼头', category: '家常菜', desc: '鲜辣过瘾', slug: 'chopped-chili-fish-head', recipe: '鱼头洗净劈开，抹料酒盐，铺姜片；\n铺满剁椒，水开上锅蒸 10 分钟；\n倒掉汁水，铺葱花蒜末；\n淋热油炝香，浇生抽。' },
+    { name: '蒜蓉空心菜', category: '素菜', desc: '蒜香脆嫩', slug: 'water-spinach-garlic', recipe: '空心菜洗净切段，蒜切末；\n热油爆香大部分蒜蓉；\n下空心菜大火快炒至塌软；\n加盐、生抽，放剩余蒜末翻匀出锅。' },
+    { name: '冬瓜排骨汤', category: '汤品', desc: '清淡滋补', slug: 'winter-melon-pork-soup', recipe: '排骨焯水洗净；冬瓜去皮切块；\n排骨加姜片、热水，小火炖 30 分钟；\n下冬瓜继续炖 15 分钟至透明；\n加盐、白胡椒，撒葱花。' },
+    { name: '蛋炒饭', category: '主食', desc: '粒粒分明', slug: 'fried-rice', recipe: '冷米饭打散，鸡蛋加盐打散；\n热油炒蛋划散盛出；\n底油下米饭炒散，可加胡萝卜丁、葱花；\n倒回鸡蛋，加盐、生抽翻匀。' },
+    { name: '葱油拌面', category: '主食', desc: '葱香浓郁', slug: 'scallion-oil-noodles', recipe: '小葱切段，热油小火炸葱段至焦香，得葱油；\n碗中放生抽、老抽、糖、少许葱油；\n面条煮熟捞出，舀面汤化开调料；\n浇葱油，撒酥葱拌匀。' }
   ];
+  return defs.map((d) => ({
+    id: uid(), name: d.name, category: d.category, desc: d.desc,
+    image: img(d.slug), recipe: d.recipe, available: true
+  }));
 }
 
 function uid() {
@@ -153,6 +179,7 @@ async function handleApi(req, res, url) {
     if (body.name !== undefined && String(body.name).trim()) cur.name = String(body.name).trim();
     if (body.category !== undefined) cur.category = String(body.category).trim() || '其他';
     if (body.desc !== undefined) cur.desc = String(body.desc).trim();
+    if (body.recipe !== undefined) cur.recipe = String(body.recipe).trim();
     if (body.image !== undefined) cur.image = String(body.image).trim();
     if (body.available !== undefined) cur.available = !!body.available;
     writeJson(MENU_FILE, menu);
@@ -222,6 +249,7 @@ function normalizeMenuItem(body) {
     name: String(body.name || '').trim(),
     category: String(body.category || '其他').trim() || '其他',
     desc: String(body.desc || '').trim(),
+    recipe: String(body.recipe || '').trim(),
     image: String(body.image || '').trim(),
     available: body.available === undefined ? true : !!body.available
   };
