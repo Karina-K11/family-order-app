@@ -65,7 +65,13 @@ function defaultMenu() {
     { name: '蒜蓉空心菜', category: '素菜', desc: '蒜香脆嫩', slug: 'water-spinach-garlic', recipe: '空心菜洗净切段，蒜切末；\n热油爆香大部分蒜蓉；\n下空心菜大火快炒至塌软；\n加盐、生抽，放剩余蒜末翻匀出锅。' },
     { name: '冬瓜排骨汤', category: '汤品', desc: '清淡滋补', slug: 'winter-melon-pork-soup', recipe: '排骨焯水洗净；冬瓜去皮切块；\n排骨加姜片、热水，小火炖 30 分钟；\n下冬瓜继续炖 15 分钟至透明；\n加盐、白胡椒，撒葱花。' },
     { name: '蛋炒饭', category: '主食', desc: '粒粒分明', slug: 'fried-rice', recipe: '冷米饭打散，鸡蛋加盐打散；\n热油炒蛋划散盛出；\n底油下米饭炒散，可加胡萝卜丁、葱花；\n倒回鸡蛋，加盐、生抽翻匀。' },
-    { name: '葱油拌面', category: '主食', desc: '葱香浓郁', slug: 'scallion-oil-noodles', recipe: '小葱切段，热油小火炸葱段至焦香，得葱油；\n碗中放生抽、老抽、糖、少许葱油；\n面条煮熟捞出，舀面汤化开调料；\n浇葱油，撒酥葱拌匀。' }
+    { name: '葱油拌面', category: '主食', desc: '葱香浓郁', slug: 'scallion-oil-noodles', recipe: '小葱切段，热油小火炸葱段至焦香，得葱油；\n碗中放生抽、老抽、糖、少许葱油；\n面条煮熟捞出，舀面汤化开调料；\n浇葱油，撒酥葱拌匀。' },
+    { name: '茄子酿虾滑', category: '减脂餐', desc: '低卡爆汁', slug: 'eggplant-shrimp-paste', recipe: '茄子选粗直的，垫筷子连切三刀、中间不切断；\n虾滑塞入茄子夹层，表面先蘸蛋液再裹薄淀粉；\n空气炸锅 180℃ 烤 15 分钟，中途翻面；\n生抽、蚝油、香醋、零卡糖、少许淀粉加水熬稠，浇上撒葱花。' },
+    { name: '西兰花炒鸡胸肉', category: '减脂餐', desc: '高蛋白低脂', slug: 'broccoli-chicken', recipe: '鸡胸肉切块，加生抽、料酒、蚝油、黑胡椒、淀粉抓匀腌 15 分钟；\n西兰花掰小朵，沸水焯水 1 分钟捞出；\n锅喷少油，下蒜瓣炒香，倒入鸡胸滑炒至变色；\n下西兰花，加盐大火翻炒两分钟出锅。' },
+    { name: '虾仁滑蛋', category: '减脂餐', desc: '嫩滑高蛋白', slug: 'shrimp-omelet', recipe: '虾仁去虾线吸干，加料酒、盐、白胡椒、淀粉腌 10 分钟；\n鸡蛋打散，加少许盐和一勺清水搅匀；\n少油把虾仁炒至刚变色盛出，倒入蛋液；\n虾仁回锅，小火推炒至蛋液半凝固，撒葱花出锅。' },
+    { name: '虾仁豆腐焖蛋', category: '减脂餐', desc: '鲜香嫩滑', slug: 'shrimp-tofu-egg', recipe: '内脂豆腐切块铺锅底，平铺一层虾仁；\n盖盖中小火焖至虾仁变色；\n淋入打散的鸡蛋液，盖盖焖至蛋液凝固；\n淋一圈生抽、蚝油焖两分钟，撒葱花。' },
+    { name: '包菜虾仁炒蛋', category: '减脂餐', desc: '鲜香开胃', slug: 'cabbage-shrimp-egg', recipe: '鸡蛋打散，热油炒散盛出；\n不用洗锅，下蒜末、小米椒炒香，倒入包菜丝炒至断生；\n下虾仁炒至变色，倒回鸡蛋；\n加盐、一勺生抽、一勺蚝油翻炒均匀出锅。' },
+    { name: '番茄金针菇汤', category: '减脂餐', desc: '低卡暖胃', slug: 'tomato-enoki-soup', recipe: '番茄切块，金针菇去根撕开，鸡蛋打散；\n少油下番茄炒出沙，加适量开水煮沸；\n下金针菇煮 3 分钟；\n淋入蛋液成蛋花，加盐、香油，撒葱花。' }
   ];
   return defs.map((d) => ({
     id: uid(), name: d.name, category: d.category, desc: d.desc,
